@@ -30,7 +30,7 @@ This document contains links to data, and all of the code to reproduce the examp
 
 This page is written using [Quarto](https://notebooklm.google.com/notebook/1efedbc4-8bc9-4dc2-af1c-466bd097e424/audio), a scientific publishing system that lets you link data and code to produce a document. This document, and the source code that can be used to create this document can be found at <https://github.com/jeremymiles/rmip>. You will need either [RStudio](https://posit.co/download/rstudio-desktop/) or [Positron](https://positron.posit.co/), both of which are free to download, to compile this document.
 
-This document has a [GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) licence. That means you are free to share, adapt or modify the document, but you also need to share the source code (the quarto document) for free if you do that.
+This document has a [GPL 3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) licence. That means you are free to share, adapt or modify the document, but you also need to share the source code ([the quarto markdown document](https://github.com/jeremymiles/rmip/blob/main/correlation_and_regression.qmd)) for free if you do that.
 
 # (Sort of) Podcasts 
 
@@ -38,19 +38,71 @@ We have used [NotebookLM](https://notebooklm.google.com/) to create two podcasts
 
 -   [Link to correlation 'podcast'](https://notebooklm.google.com/notebook/1efedbc4-8bc9-4dc2-af1c-466bd097e424/audio) (\~26 minutes)
 
--   [Link to regression 'podcast'](https://notebooklm.google.com/notebook/c7730339-2a09-417e-a0d2-922b3a9c9cd9/audio) (\~37 minutes)
+-   [Link to regression 'podcast'](https://notebooklm.google.com/notebook/c7730339-2a09-417e-a0d2-922b3a9c9cd9/audio) (\~37 minutes)\
 
-When you click the **Render** button a document will be generated that includes both content and the output of embedded code. You can embed code like this:
+# Correlation
 
-```{r}
-1 + 1
+## The Code 
+
+First we need to load the packages that we're going to be using in the document. If you don't have these installed in your R environment, you need to add them, which you almost certainly do by running:
+
+`install.packages("package_name")`
+
+Note that in the code below, we've used `output=FALSE` in this code block We did that so that the document isn't full of messages about each package. If you run into problems, change that to `TRUE` and you might get a helpful error message.
+
+```{r, output=FALSE}
+library(boot.pval)
+library(car)
+library(datasauRus)
+library(datasets)
+library(dplyr)
+library(ggplot2)
+library(haven)
+library(lmtest)
+library(lubridate)
+library(MASS)
+library(NHANES)
+library(QuantPsyc)
+library(sandwich)
+library(stringr)
+
 ```
 
-You can add options to executable code like this
+### Galton
+
+First we'll load the Galton data. The data are loaded straight from github, so we assume that you have an internet connection to do this.
 
 ```{r}
-#| echo: false
-2 * 2
+d_galton <- 
+  read.table(
+    paste0("https://raw.githubusercontent.com/jeremymiles/", 
+           "rmip/refs/heads/main/Galton.dat"), 
+    header = TRUE)
+
+head(d_galton)
+```
+
+We only want to look at the boys, so we will filter the data to include them, and then we can produce the plot in Figure 1.
+
+```{r}
+#| label: fig-charts
+#| fig-cap: " Scatter plot of heights of fathers and sons from Galton’s data."
+d_male <- d_galton %>% 
+  dplyr::filter(gender == "M")
+
+# Figure 1
+ggplot2::ggplot(d_male, aes(x = father, y = height)) +
+  geom_point() +
+  ylab("Son's height (inches)") +
+  xlab("Father's height (inches)") +
+  theme_gray(base_size = 18)
+
+```
+
+We can calculate the correlation in this data.
+
+```{r}
+cor(d_male$father, d_male$height)
 ```
 
 The `echo: false` option disables the printing of code (only output is displayed).
